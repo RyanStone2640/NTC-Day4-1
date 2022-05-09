@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>VueForm</title>
+</head>
+<body>
+	<div id="app">
+			<keep-alive>
+				<component  :is="currentTab" @notice-update="noticeTab" @notice-information="noticeInformation" :parent-data="form"></component>
+			</keep-alive>
+	</div>
+</body>
+
+
+
+<script src="https://unpkg.com/vue@3"></script>
+
+<script type="text/x-template" id="first-component">
+	<label>姓名</label><input type="text" v-model="name">
+	<br>
+	<label>電話</label><input type="text" v-model="phone">
+	<br>
+	<button @click="next()">下一步</button>
+</script>
+
+<script type="text/x-template" id="second-component">
+	<label>地址</label><input type="text" v-model="location">
+	<br>
+	<button @click="prev()">上一步</button>
+	<button @click="next()">下一步</button>		
+
+
+</script>
+
+<script type="text/x-template" id="third-component">
+	<span>請確認資料:</span>
+	<div>{{parentData.name}}</div>
+	<div>{{parentData.phone}}</div>
+	<div>{{parentData.location}}</div>
+	<button @click="prev()">上一步</button>
+</script>
+
+
+
+<script>
+	const app = Vue.createApp({
+		data(){
+			return{
+				tabs: [ "first-component", "second-component", "third-component"],
+				currentTab: "first-component",
+				form:{}
+			}
+		},
+		methods:{
+			noticeTab(val){
+				this.currentTab = val;
+			},
+			noticeInformation(val){
+				console.log(val);
+				this.form[val.key] = val.value
+				console.log(this.form)
+			}
+		}
+	})
+
+	app.component("first-component", {
+		template: "#first-component", 
+		data(){
+			return{
+				changeTab: "second-component",
+				name: "",
+				phone: ""
+			
+			}
+		},
+		watch: {
+			name: {
+				handler(val){
+					this.$emit('noticeInformation', {
+							key: "name",
+							value: val
+						})
+				}
+			},
+			phone: {
+				handler(val){
+					this.$emit('noticeInformation', {
+							key: "phone",
+							value: val
+						})
+				}
+			}			
+		},
+		methods:{
+			next(){
+					this.$emit('noticeUpdate', this.changeTab)
+			}
+		}			
+	})
+
+	app.component("second-component", {
+		template: "#second-component", 
+		data(){
+			return{
+				changeTab: "",
+				location: ""
+			}
+		},
+		watch: {
+			location: {
+				handler(val){
+					this.$emit('noticeInformation', {
+							key: "location",
+							value: val
+						})
+				}
+			}			
+		},		
+		methods:{
+			next(){
+				this.changeTab = "third-component";
+					this.$emit('noticeUpdate', this.changeTab)
+			},
+			prev(){
+				this.changeTab = "first-component";
+					this.$emit('noticeUpdate', this.changeTab)
+			}
+		}		
+
+	})
+
+	app.component("third-component", {
+		template: "#third-component", 
+		data(){
+			return{
+				changeTab: ""
+			}
+		},	
+		props: ['parentData'],
+		methods:{
+			prev(){
+				this.changeTab = "first-component";
+					this.$emit('noticeUpdate', this.changeTab)
+			}
+		}			
+
+	})	
+	app.mount("#app");
+
+</script>
+</html>
